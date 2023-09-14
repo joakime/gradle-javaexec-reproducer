@@ -1,0 +1,31 @@
+plugins {
+    id("java")
+}
+
+group = "com.example"
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    runtimeOnly 'org.eclipse.jetty:jetty-xml:12.0.1'
+    runtimeOnly 'org.eclipse.jetty:jetty-http:12.0.1'
+}
+
+jar {
+    manifest {
+        attributes('Main-Class': 'com.example.Main')
+    }
+}
+
+task runApp(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.example.Main'
+    jvmArgs '-Dsun.misc.URLClassPath.debug=true -Djdk.net.URLClassPath.showIgnoredClassPathEntries=true'
+}
