@@ -16,6 +16,7 @@ java {
 dependencies {
     runtimeOnly 'org.eclipse.jetty:jetty-xml:12.0.1'
     runtimeOnly 'org.eclipse.jetty:jetty-http:12.0.1'
+    runtimeOnly 'org.eclipse.jetty:jetty-slf4j-impl:12.0.1'
 }
 
 jar {
@@ -27,5 +28,11 @@ jar {
 task runApp(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.example.Main'
-    jvmArgs '-Dsun.misc.URLClassPath.debug=true -Djdk.net.URLClassPath.showIgnoredClassPathEntries=true'
+    jvmArgs(
+        // Note: the default value for all of these is `false`
+        '-Dsun.misc.URLClassPath.debug=false',
+        '-Djdk.net.URLClassPath.disableClassPathURLCheck=false',
+        '-Ddk.net.URLClassPath.disableRestrictedPermissions=false',
+        '-Djdk.net.URLClassPath.showIgnoredClassPathEntries=false'
+    )
 }

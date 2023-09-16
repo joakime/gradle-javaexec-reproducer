@@ -2,38 +2,42 @@ package com.example;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public class Main
 {
-    private static void dumpJarManifest(Class<Main> clazz)
+    private static void dumpJavaClassPath()
     {
-        URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
-        if ("jar".equals(location.getProtocol()))
+        String javaClassPath = System.getProperty("java.class.path");
+        if (!javaClassPath.contains(File.pathSeparator) && javaClassPath.endsWith(".jar"))
         {
             // show jar file contents
-            try (JarFile jarfile = new JarFile(new File(location.toURI())))
+            try (JarFile jarfile = new JarFile(javaClassPath))
             {
-                System.out.printf("Main JAR: %s%n", location);
+                System.out.printf("Main JAR: %s%n", javaClassPath);
                 Manifest manifest = jarfile.getManifest();
                 Attributes mainAttributes = manifest.getMainAttributes();
-
                 System.out.printf("Main-Class is %s%n", mainAttributes.getValue(Attributes.Name.MAIN_CLASS));
-                System.out.printf("Class-Path is %s%n", mainAttributes.getValue(Attributes.Name.CLASS_PATH));
+                String rawClassPath = mainAttributes.getValue(Attributes.Name.CLASS_PATH);
+                System.out.println("Class-Path entry:");
+                if (rawClassPath == null)
+                    System.out.println("   No Entries (blank or unset)");
+                else
+                    for (String cpEntry : rawClassPath.split(" "))
+                    {
+                        System.out.printf("   %s%n", cpEntry);
+                    }
             }
-            catch (IOException | URISyntaxException e)
+            catch (IOException e)
             {
                 e.printStackTrace();
             }
         }
         else
         {
-            // show location on disk
-            System.out.printf("Main Class Loaded from: %s%n", location);
+            System.out.println("java.class.path=" + javaClassPath);
         }
     }
 
@@ -50,13 +54,28 @@ public class Main
         }
     }
 
+    private static void dumpJavaProperty(String propName)
+    {
+        String value = System.getProperty(propName);
+        System.out.printf("System.getProperty(\"%s\") = ", propName);
+        if (value == null)
+            System.out.println("<null> (does not exist)");
+        else
+            System.out.printf("\"%s\"%n", value);
+    }
+
     public static void main(String[] args)
     {
         // To turn on DEBUG of URLClassPath ignore behaviors -Djdk.net.URLClassPath.showIgnoredClassPathEntries=true
+        dumpJavaProperty("java.version");
+        dumpJavaProperty("sun.misc.URLClassPath.debug");
+        dumpJavaProperty("jdk.net.URLClassPath.disableRestrictedPermissions");
+        dumpJavaProperty("jdk.net.URLClassPath.disableClassPathURLCheck");
+        dumpJavaProperty("jdk.net.URLClassPath.showIgnoredClassPathEntries");
+
         System.out.println("Running in " + Main.class.getName());
 
-        System.out.printf("java.class.path = %s%n", System.getProperty("java.class.path"));
-        dumpJarManifest(Main.class);
+        dumpJavaClassPath();
 
         findClass("org.eclipse.jetty.http.HttpStatus");
         findClass("org.eclipse.jetty.io.ByteBufferPool");
